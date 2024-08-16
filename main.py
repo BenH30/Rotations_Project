@@ -93,9 +93,9 @@ def compute_maneuver(attitude_list, euler_sequence, degrees=True, origin=np.arra
             continue
         else:
             att1 = R.from_euler(seq=euler_sequence, angles=attitude_list[index-1], degrees=degrees)
-        att2 = R.from_euler(seq=euler_sequence, angles=attitude, degrees=degrees)
-        rotation = att2 * att1.inv()
-        mnvr_angles = rotation.as_euler(seq=euler_sequence, degrees=degrees)
+            att2 = R.from_euler(seq=euler_sequence, angles=attitude, degrees=degrees)
+            rotation = att2 * att1.inv()
+            mnvr_angles = rotation.as_euler(seq=euler_sequence, degrees=degrees)
 
 
 # Example usage
