@@ -91,8 +91,6 @@ def compute_maneuver(attitude_list, euler_sequence, degrees=True, origin=np.arra
         print(index, attitude)
         if index == 0:
             continue
-            att1 = R.from_euler(seq=euler_sequence, angles=init_attitude, degrees=degrees)
-            index += 1
         else:
             att1 = R.from_euler(seq=euler_sequence, angles=attitude_list[index-1], degrees=degrees)
         att2 = R.from_euler(seq=euler_sequence, angles=attitude, degrees=degrees)
