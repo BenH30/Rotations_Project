@@ -54,12 +54,6 @@ def compute_attitude(euler_angle_dictionary, euler_sequence, degrees=True, origi
     num_rows = int(np.ceil(total_maneuvers ** 0.5))
     num_columns = int(np.ceil(total_maneuvers / num_rows))
 
-    # Plot the initial attitude
-    initial_attitude = attitude_list[0].as_euler(seq=euler_sequence, degrees=True)
-    initial_rotation = R.from_euler(seq=euler_sequence, angles=initial_attitude, degrees=degrees)
-    axis = fig.add_subplot(num_rows, num_columns, 1, projection='3d')
-    plot_setup(axis, origin, initial_rotation.as_matrix(), 'Initial Attitude')
-
     for attitude_index, maneuver_euler_angles in euler_angle_dictionary.items():
         maneuver_rotation = R.from_euler(seq=euler_sequence, angles=maneuver_euler_angles, degrees=degrees)
 
@@ -102,21 +96,16 @@ def compute_maneuver(attitude_dictionary, euler_sequence, degrees=True, origin=n
     num_rows = int(np.ceil(total_maneuvers ** 0.5))
     num_columns = int(np.ceil(total_maneuvers / num_rows))
 
-    # Plot the initial attitude
-    initial_attitude = attitude_dictionary[0]
-    initial_rotation = R.from_euler(seq=euler_sequence, angles=initial_attitude, degrees=degrees)
-    axis = fig.add_subplot(num_rows, num_columns, 1, projection='3d')
-    plot_setup(axis, origin, initial_rotation.as_matrix(), 'Initial Attitude')
-
     # Loop through the attitude list to calculate and plot maneuvers
     for attitude_index, attitude_angles in attitude_dictionary.items():
         if attitude_index == 0:
             pre_maneuver_attitude = R.from_euler(seq=euler_sequence, angles=attitude_dictionary[attitude_index],
-                                             degrees=degrees)
+                                                 degrees=degrees)
         else:
             pre_maneuver_attitude = R.from_euler(seq=euler_sequence, angles=attitude_dictionary[attitude_index - 1],
-                                             degrees=degrees)
-        post_maneuver_attitude = R.from_euler(seq=euler_sequence, angles=attitude_dictionary[attitude_index], degrees=degrees)
+                                                 degrees=degrees)
+        post_maneuver_attitude = R.from_euler(seq=euler_sequence, angles=attitude_dictionary[attitude_index],
+                                              degrees=degrees)
 
         maneuver_rotation = post_maneuver_attitude * pre_maneuver_attitude.inv()
         maneuver_angles = maneuver_rotation.as_euler(seq=euler_sequence, degrees=degrees)
@@ -149,18 +138,26 @@ def compute_maneuver(attitude_dictionary, euler_sequence, degrees=True, origin=n
     plt.show()
 
 
-# Example usage
-# angles = [[0, 0, 0], [30, 0, 0], [-30, 0, 0], [45, 180, 180], [-146.31389377, -32.49235207, 29.01456352]]
-# attitudes = [[0, 0, 0], [30, 0, 0], [0, 0, 0], [-135, 0, 0], [90, 42, 7]]
-# compute_attitude(angles, 'ZYX', True)
-# compute_maneuver(attitudes, 'ZYX', True)
-
 # todo adjust Maneuver text placement
 # todo allow for single attitude entries
 
-angle_dictionary = {0: [0, 0, 0], 1: [30, 0, 0], 2: [-30, 0, 0], 3: [45, 180, 180],
-                    4: [-146.31389377, -32.49235207, 29.01456352]}
-attitude_dictionary = {0: [0, 0, 0], 1: [30, 0, 0], 2: [0, 0, 0], 3: [-135, 0, 0], 4: [90, 42, 7]}
+# # # # # # # # # # # # #
+# # #    Inputs     # # #
+# # # # # # # # # # # # #
 
-compute_attitude(angle_dictionary, 'ZYX', True)
-compute_maneuver(attitude_dictionary, 'ZYX', True)
+input_angles = {0: [0, 0, 0], 1: [30, 0, 0], 2: [-30, 0, 0], 3: [45, 180, 180],
+                4: [-146.31389377, -32.49235207, 29.01456352]}
+input_attitudes = {0: [0, 0, 0], 1: [30, 0, 0], 2: [0, 0, 0], 3: [-135, 0, 0], 4: [90, 42, 7]}
+
+single_angle = {0: [0, 0, 0]}
+single_attitude = {0: [0, 0, 0]}
+
+# # # # # # # # # # # # # # # # #
+# # #    Function Calls     # # #
+# # # # # # # # # # # # # # # # #
+
+compute_attitude(input_angles, 'ZYX', True)
+compute_maneuver(input_attitudes, 'ZYX', True)
+
+compute_attitude(single_angle, 'ZYX', True)
+compute_maneuver(single_attitude, 'ZYX', True)
