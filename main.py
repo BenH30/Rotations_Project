@@ -69,7 +69,10 @@ def compute_attitude(euler_angle_list, euler_sequence, degrees=True, origin=np.a
         axis = fig.add_subplot(num_rows, num_columns, maneuver_count + 1, projection='3d')
 
         # Set the title for each plot
-        if maneuver_count == 0:
+        if total_maneuvers == 1:
+            axis_label = 'Input Attitude'
+            post_maneuver_attitude = maneuver_rotation
+        elif maneuver_count == 0:
             axis_label = 'Initial Attitude'
             post_maneuver_attitude = maneuver_rotation
         elif maneuver_count == total_maneuvers - 1:
@@ -99,6 +102,7 @@ def compute_maneuver(attitude_list, euler_sequence, degrees=True, origin=np.arra
 
     # Plot the initial attitude
     initial_attitude = attitude_list[0]
+    print(attitude_list, initial_attitude)
     initial_rotation = R.from_euler(seq=euler_sequence, angles=initial_attitude, degrees=degrees)
     axis = fig.add_subplot(num_rows, num_columns, 1, projection='3d')
     plot_setup(axis, origin, initial_rotation.as_matrix(), 'Initial Attitude')
@@ -116,7 +120,10 @@ def compute_maneuver(attitude_list, euler_sequence, degrees=True, origin=np.arra
         axis = fig.add_subplot(num_rows, num_columns, maneuver_count + 1, projection='3d')
 
         # Set the title for each plot
-        if maneuver_count == 0:
+        if total_maneuvers == 1:
+            axis_label = 'Input Attitude'
+            post_maneuver_attitude = maneuver_rotation
+        elif maneuver_count == 0:
             axis_label = 'Initial Attitude'
         elif maneuver_count == len(attitude_list) - 1:
             axis_label = 'Final Attitude'
@@ -136,7 +143,12 @@ def compute_maneuver(attitude_list, euler_sequence, degrees=True, origin=np.arra
 # Example usage
 angles = [[0, 0, 0], [30, 0, 0], [-30, 0, 0], [45, 180, 180], [-146.31389377, -32.49235207, 29.01456352]]
 attitudes = [[0, 0, 0], [30, 0, 0], [0, 0, 0], [-135, 0, 0], [90, 42, 7]]
-compute_attitude(angles, 'ZYX', True)
-compute_maneuver(attitudes, 'ZYX', True)
+# compute_attitude(angles, 'ZYX', True)
+# compute_maneuver(attitudes, 'ZYX', True)
 
 # todo adjust Maneuver text placement
+# todo allow for single attitude entries
+
+angle_dictionary = {0: [0, 0, 0], 1: [30, 0, 0], 2: [-30, 0, 0], 3: [45, 180, 180],
+                    4: [-146.31389377, -32.49235207, 29.01456352]}
+attitude_dictionary = {0: [0, 0, 0], 1: [30, 0, 0], 2: [0, 0, 0], 3: [-135, 0, 0], 4: [90, 42, 7]}
