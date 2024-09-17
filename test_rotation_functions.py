@@ -1,7 +1,7 @@
 import unittest
 import numpy as np
 from scipy.spatial.transform import Rotation as R
-from main import compute_attitude, compute_maneuver, plot_setup
+from main import plot_attitude, plot_maneuver, plot_setup
 
 class TestRotationFunctions(unittest.TestCase):
 
@@ -19,18 +19,18 @@ class TestRotationFunctions(unittest.TestCase):
         np.testing.assert_array_almost_equal(matrix, expected_matrix, decimal=5)
 
     def test_compute_attitude_single(self):
-        # Test the compute_attitude function with a single attitude
+        # Test the plot_attitude function with a single attitude
         single_angle = {0: [0, 0, 0]}
         try:
-            compute_attitude(single_angle, 'ZYX', True)
+            plot_attitude(single_angle, 'ZYX', True)
         except Exception as e:
             self.fail(f"compute_attitude raised an exception with a single input: {e}")
 
     def test_compute_maneuver_single(self):
-        # Test the compute_maneuver function with a single attitude
+        # Test the plot_maneuver function with a single attitude
         single_attitude = {0: [0, 0, 0]}
         try:
-            compute_maneuver(single_attitude, 'ZYX', True)
+            plot_maneuver(single_attitude, 'ZYX', True)
         except Exception as e:
             self.fail(f"compute_maneuver raised an exception with a single input: {e}")
 
@@ -48,7 +48,7 @@ class TestRotationFunctions(unittest.TestCase):
         # Test that invalid inputs are handled (e.g., wrong dimension or non-numeric input)
         with self.assertRaises(ValueError):
             invalid_angle = {0: ['invalid', 0, 0]}  # Non-numeric input
-            compute_attitude(invalid_angle, 'ZYX', True)
+            plot_attitude(invalid_angle, 'ZYX', True)
 
 if __name__ == '__main__':
     unittest.main()

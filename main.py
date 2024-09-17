@@ -46,7 +46,7 @@ def plot_setup(axis, origin, reference_frame, reference_frame_label, maneuver_an
     axis.text2D(x=1, y=0.25, s=attitude_angle_string, transform=axis.transAxes, fontsize=12)
 
 
-def compute_attitude(euler_angle_dictionary, euler_sequence, degrees=True, origin=np.array([0, 0, 0])):
+def plot_attitude(euler_angle_dictionary, euler_sequence, degrees=True, origin=np.array([0, 0, 0])):
     fig = plt.figure(figsize=(9, 16))
     attitude_list = [R.from_euler(seq=euler_sequence, angles=euler_angle_dictionary[0], degrees=degrees)]
     total_maneuvers = len(euler_angle_dictionary)
@@ -89,7 +89,7 @@ def compute_attitude(euler_angle_dictionary, euler_sequence, degrees=True, origi
     plt.show()
 
 
-def compute_maneuver(attitude_dictionary, euler_sequence, degrees=True, origin=np.array([0, 0, 0])):
+def plot_maneuver(attitude_dictionary, euler_sequence, degrees=True, origin=np.array([0, 0, 0])):
     fig = plt.figure(figsize=(9, 16))
     total_maneuvers = len(attitude_dictionary)
     num_rows = int(np.ceil(total_maneuvers ** 0.5))
@@ -137,6 +137,20 @@ def compute_maneuver(attitude_dictionary, euler_sequence, degrees=True, origin=n
     plt.show()
 
 
+def compute_rotations(initial_attitude, euler_angles, euler_angle_type, euler_sequence='ZYX', degrees=True):
+    initial_attitude = R.from_euler(seq=euler_sequence, angles=initial_attitude, degrees=degrees)
+    if euler_angle_type == 'attitude':
+        final_attitude = R.from_euler(seq=euler_sequence, angles=euler_angles, degrees=degrees)
+        rotation = final_attitude * initial_attitude.inv()
+        return rotation
+    elif euler_angle_type == 'maneuver':
+        rotation = R.from_euler(seq=euler_sequence, angles=euler_angles, degrees=degrees)
+        final_attitude = rotation * initial_attitude
+        return final_attitude
+    else:
+        raise ValueError('angle_type must be attitude or maneuver')
+
+
 # todo adjust Maneuver text placement
 # todo allow for single attitude entries
 
@@ -155,8 +169,26 @@ single_attitude = {0: [0, 0, 0]}
 # # #    Function Calls     # # #
 # # # # # # # # # # # # # # # # #
 
-compute_attitude(input_angles, 'ZYX', True)
-compute_maneuver(input_attitudes, 'ZYX', True)
+# plot_attitude(input_angles, 'ZYX', True)
+# plot_maneuver(input_attitudes, 'ZYX', True)
+#
+# plot_attitude(single_angle, 'ZYX', True)
+# plot_maneuver(single_attitude, 'ZYX', True)
 
-compute_attitude(single_angle, 'ZYX', True)
-compute_maneuver(single_attitude, 'ZYX', True)
+calc_maneuver = compute_rotations(initial_attitude=[40, 0, 0], euler_angles=[90, 0, 0], euler_angle_type='attitude', euler_sequence='ZYX', degrees=True)
+calc_attitude = compute_rotations(initial_attitude=[40, 0, 0], euler_angles=[90, 0, 0], euler_angle_type='maneuver', euler_sequence='ZYX', degrees=True)
+
+print(calc_maneuver.as_euler(seq='ZYX', degrees=True))
+print(calc_attitude.as_euler(seq='ZYX', degrees=True))
+print(calc_maneuver.as_quat())
+print(calc_attitude.as_quat())
+print(calc_maneuver.magnitude() < calc_attitude.magnitude())
+print(2*np.acos(calc_maneuver.as_quat()[-1])*180/np.pi)
+print(2*np.acos(calc_attitude.as_quat()[-1])*180/np.pi)
+
+
+# In scipy, the fourth element of the quaternion is the scalar by default
+# q4 = cos(u/2) where u is the rotation angle about the rotation axis
+# u = 2*acos(q4)
+
+# todo implement the new compute function into the plot functions
