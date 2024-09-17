@@ -139,4 +139,4 @@ attitudes = [[0, 0, 0], [30, 0, 0], [0, 0, 0], [-135, 0, 0], [90, 42, 7]]
 compute_attitude(angles, 'ZYX', True)
 compute_maneuver(attitudes, 'ZYX', True)
 
-#todo adjust Maneuver text placement
+# todo adjust Maneuver text placement
