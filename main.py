@@ -47,10 +47,10 @@ def plot_setup(axis, origin, reference_frame, reference_frame_label, maneuver_an
     axis.text2D(x=1, y=0.25, s=attitude_angle_string, transform=axis.transAxes, fontsize=12)
 
 
-def compute_attitude(euler_angle_list, euler_sequence, degrees=True, origin=np.array([0, 0, 0])):
+def compute_attitude(euler_angle_dictionary, euler_sequence, degrees=True, origin=np.array([0, 0, 0])):
     fig = plt.figure(figsize=(9, 16))
-    attitude_list = [R.from_euler(seq=euler_sequence, angles=euler_angle_list[0], degrees=degrees)]
-    total_maneuvers = len(euler_angle_list)
+    attitude_list = [R.from_euler(seq=euler_sequence, angles=euler_angle_dictionary[0], degrees=degrees)]
+    total_maneuvers = len(euler_angle_dictionary)
     num_rows = int(np.ceil(total_maneuvers ** 0.5))
     num_columns = int(np.ceil(total_maneuvers / num_rows))
 
@@ -60,33 +60,35 @@ def compute_attitude(euler_angle_list, euler_sequence, degrees=True, origin=np.a
     axis = fig.add_subplot(num_rows, num_columns, 1, projection='3d')
     plot_setup(axis, origin, initial_rotation.as_matrix(), 'Initial Attitude')
 
-    for attitude_index in range(1, total_maneuvers):
-        maneuver_euler_angles = euler_angle_list[attitude_index]
+    for attitude_index, maneuver_euler_angles in euler_angle_dictionary.items():
         maneuver_rotation = R.from_euler(seq=euler_sequence, angles=maneuver_euler_angles, degrees=degrees)
 
+        # Figure setup
+        axis_title = 'Compute Attitude'
+        fig.suptitle(axis_title)
+
         # Create a subplot for each maneuver
-        maneuver_count = attitude_index
-        axis = fig.add_subplot(num_rows, num_columns, maneuver_count + 1, projection='3d')
+        axis = fig.add_subplot(num_rows, num_columns, attitude_index + 1, projection='3d')
 
         # Set the title for each plot
         if total_maneuvers == 1:
             axis_label = 'Input Attitude'
             post_maneuver_attitude = maneuver_rotation
-        elif maneuver_count == 0:
+        elif attitude_index == 0:
             axis_label = 'Initial Attitude'
             post_maneuver_attitude = maneuver_rotation
-        elif maneuver_count == total_maneuvers - 1:
+            plot_setup(axis, origin, post_maneuver_attitude.as_matrix(), axis_label)
+            continue
+        elif attitude_index == total_maneuvers - 1:
             axis_label = 'Final Attitude'
             post_maneuver_attitude = (maneuver_rotation * attitude_list[-1])
         else:
-            axis_label = 'Maneuver ' + str(maneuver_count)
+            axis_label = 'Maneuver ' + str(attitude_index)
             post_maneuver_attitude = (maneuver_rotation * attitude_list[-1])
 
-        axis_title = 'Compute Attitude'
-        fig.suptitle(axis_title)
         plot_setup(axis, origin, post_maneuver_attitude.as_matrix(), axis_label, maneuver_angles=maneuver_euler_angles)
         attitude_list.append(post_maneuver_attitude)
-        maneuver_count += 1
+        attitude_index += 1
 
     plt.tight_layout()
     plt.subplots_adjust(top=0.9, hspace=0.5)
@@ -94,45 +96,52 @@ def compute_attitude(euler_angle_list, euler_sequence, degrees=True, origin=np.a
     plt.show()
 
 
-def compute_maneuver(attitude_list, euler_sequence, degrees=True, origin=np.array([0, 0, 0])):
+def compute_maneuver(attitude_dictionary, euler_sequence, degrees=True, origin=np.array([0, 0, 0])):
     fig = plt.figure(figsize=(9, 16))
-    total_maneuvers = len(attitude_list)
+    total_maneuvers = len(attitude_dictionary)
     num_rows = int(np.ceil(total_maneuvers ** 0.5))
     num_columns = int(np.ceil(total_maneuvers / num_rows))
 
     # Plot the initial attitude
-    initial_attitude = attitude_list[0]
-    print(attitude_list, initial_attitude)
+    initial_attitude = attitude_dictionary[0]
     initial_rotation = R.from_euler(seq=euler_sequence, angles=initial_attitude, degrees=degrees)
     axis = fig.add_subplot(num_rows, num_columns, 1, projection='3d')
     plot_setup(axis, origin, initial_rotation.as_matrix(), 'Initial Attitude')
 
     # Loop through the attitude list to calculate and plot maneuvers
-    for attitude_index in range(1, len(attitude_list)):
-        pre_maneuver_attitude = R.from_euler(seq=euler_sequence, angles=attitude_list[attitude_index - 1],
+    for attitude_index, attitude_angles in attitude_dictionary.items():
+        if attitude_index == 0:
+            pre_maneuver_attitude = R.from_euler(seq=euler_sequence, angles=attitude_dictionary[attitude_index],
                                              degrees=degrees)
-        post_maneuver_attitude = R.from_euler(seq=euler_sequence, angles=attitude_list[attitude_index], degrees=degrees)
+        else:
+            pre_maneuver_attitude = R.from_euler(seq=euler_sequence, angles=attitude_dictionary[attitude_index - 1],
+                                             degrees=degrees)
+        post_maneuver_attitude = R.from_euler(seq=euler_sequence, angles=attitude_dictionary[attitude_index], degrees=degrees)
+
         maneuver_rotation = post_maneuver_attitude * pre_maneuver_attitude.inv()
         maneuver_angles = maneuver_rotation.as_euler(seq=euler_sequence, degrees=degrees)
 
+        # Plot setup with calculated maneuver angles
+        axis_title = 'Compute Maneuver'
+        fig.suptitle(axis_title)
+
         # Create a subplot for each maneuver
-        maneuver_count = attitude_index
-        axis = fig.add_subplot(num_rows, num_columns, maneuver_count + 1, projection='3d')
+        axis = fig.add_subplot(num_rows, num_columns, attitude_index + 1, projection='3d')
 
         # Set the title for each plot
         if total_maneuvers == 1:
             axis_label = 'Input Attitude'
             post_maneuver_attitude = maneuver_rotation
-        elif maneuver_count == 0:
+        elif attitude_index == 0:
             axis_label = 'Initial Attitude'
-        elif maneuver_count == len(attitude_list) - 1:
+            post_maneuver_attitude = maneuver_rotation
+            plot_setup(axis, origin, post_maneuver_attitude.as_matrix(), axis_label)
+            continue
+        elif attitude_index == len(attitude_dictionary) - 1:
             axis_label = 'Final Attitude'
         else:
-            axis_label = 'Maneuver ' + str(maneuver_count)
+            axis_label = 'Maneuver ' + str(attitude_index)
 
-        # Plot setup with calculated maneuver angles
-        axis_title = 'Compute Maneuver'
-        fig.suptitle(axis_title)
         plot_setup(axis, origin, post_maneuver_attitude.as_matrix(), axis_label, maneuver_angles=maneuver_angles)
 
     plt.tight_layout()
@@ -141,8 +150,8 @@ def compute_maneuver(attitude_list, euler_sequence, degrees=True, origin=np.arra
 
 
 # Example usage
-angles = [[0, 0, 0], [30, 0, 0], [-30, 0, 0], [45, 180, 180], [-146.31389377, -32.49235207, 29.01456352]]
-attitudes = [[0, 0, 0], [30, 0, 0], [0, 0, 0], [-135, 0, 0], [90, 42, 7]]
+# angles = [[0, 0, 0], [30, 0, 0], [-30, 0, 0], [45, 180, 180], [-146.31389377, -32.49235207, 29.01456352]]
+# attitudes = [[0, 0, 0], [30, 0, 0], [0, 0, 0], [-135, 0, 0], [90, 42, 7]]
 # compute_attitude(angles, 'ZYX', True)
 # compute_maneuver(attitudes, 'ZYX', True)
 
@@ -152,3 +161,6 @@ attitudes = [[0, 0, 0], [30, 0, 0], [0, 0, 0], [-135, 0, 0], [90, 42, 7]]
 angle_dictionary = {0: [0, 0, 0], 1: [30, 0, 0], 2: [-30, 0, 0], 3: [45, 180, 180],
                     4: [-146.31389377, -32.49235207, 29.01456352]}
 attitude_dictionary = {0: [0, 0, 0], 1: [30, 0, 0], 2: [0, 0, 0], 3: [-135, 0, 0], 4: [90, 42, 7]}
+
+compute_attitude(angle_dictionary, 'ZYX', True)
+compute_maneuver(attitude_dictionary, 'ZYX', True)
