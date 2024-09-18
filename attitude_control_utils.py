@@ -220,10 +220,6 @@ def plot_single_maneuver(initial_attitude, final_attitude, euler_sequence='ZYX',
     plt.show()
 
 
-
-
-
-
 # # # # # # # # # # # # #
 # #    Format Rules   # #
 # # # # # # # # # # # # #
