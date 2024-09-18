@@ -59,7 +59,8 @@ def print_maneuvers(initial_attitude, maneuver_dictionary, attitude_dictionary):
         print(f'Ending Attitude:   {attitude_dictionary[maneuver_index]}')
 
 
-def plot_setup(axis, reference_frame, reference_frame_label, origin=np.array([0, 0, 0]), maneuver_angles=None, sequence='ZYX'):
+def plot_setup(axis, reference_frame, reference_frame_label, origin=np.array([0, 0, 0]), maneuver_angles=None,
+               sequence='ZYX'):
     x_color = 'r'
     y_color = 'g'
     z_color = 'b'
@@ -150,7 +151,83 @@ def plot_attitudes(attitude_dictionary, maneuver_dictionary):
     plt.show()
 
 
-# Format Rules
+def plot_single_maneuver(initial_attitude, final_attitude, euler_sequence='ZYX', degrees=True, origin=np.array([0, 0, 0])):
+    """
+    Plots the initial and final attitudes for a single maneuver.
+
+    Parameters:
+    - initial_attitude (list or np.array): Initial attitude in degrees or radians.
+    - final_attitude (list or np.array): Final attitude in degrees or radians.
+    - euler_sequence (str): Euler angle sequence. Default is 'ZYX'.
+    - degrees (bool): Whether the angles are in degrees. Default is True.
+    - origin (np.array): The origin point for the quiver arrows. Default is np.array([0, 0, 0]).
+    """
+    # Define colors for X, Y, Z axes
+    x_color, y_color, z_color = 'r', 'g', 'b'
+
+    # Convert final attitude to a rotation object
+    final_angles = R.from_euler(angles=final_attitude, seq=euler_sequence, degrees=degrees)
+
+    # Create the plot
+    fig = plt.figure()
+    ax = fig.add_subplot(111, projection='3d')
+
+    # Plot initial attitude
+    initial_rotation = R.from_euler(angles=initial_attitude, seq=euler_sequence, degrees=degrees)
+    plot_setup(ax, initial_rotation.as_matrix(), "Initial Attitude", origin=origin)
+
+    # Plot final attitude with dashed arrows and modified labels
+    final_rotation_matrix = final_angles.as_matrix()
+
+    length = 0.5  # Length of arrows
+    label_distance = 0.75  # Factor to bring text 25% closer to the arrows
+
+    # Plot X' axis
+    ax.quiver(*origin, final_rotation_matrix[0, 0], final_rotation_matrix[1, 0], final_rotation_matrix[2, 0],
+              color=x_color, linestyle='dashed', length=length)
+    ax.text(origin[0] + label_distance * length * final_rotation_matrix[0, 0],
+            origin[1] + label_distance * length * final_rotation_matrix[1, 0],
+            origin[2] + label_distance * length * final_rotation_matrix[2, 0],
+            "X'", color=x_color)
+
+    # Plot Y' axis
+    ax.quiver(*origin, final_rotation_matrix[0, 1], final_rotation_matrix[1, 1], final_rotation_matrix[2, 1],
+              color=y_color, linestyle='dashed', length=length)
+    ax.text(origin[0] + label_distance * length * final_rotation_matrix[0, 1],
+            origin[1] + label_distance * length * final_rotation_matrix[1, 1],
+            origin[2] + label_distance * length * final_rotation_matrix[2, 1],
+            "Y'", color=y_color)
+
+    # Plot Z' axis
+    ax.quiver(*origin, final_rotation_matrix[0, 2], final_rotation_matrix[1, 2], final_rotation_matrix[2, 2],
+              color=z_color, linestyle='dashed', length=length)
+    ax.text(origin[0] + label_distance * length * final_rotation_matrix[0, 2],
+            origin[1] + label_distance * length * final_rotation_matrix[1, 2],
+            origin[2] + label_distance * length * final_rotation_matrix[2, 2],
+            "Z'", color=z_color)
+
+    # Set plot limits and labels
+    ax.set_xlim([-1, 1])
+    ax.set_ylim([-1, 1])
+    ax.set_zlim([-1, 1])
+    ax.set_xlabel('X')
+    ax.set_ylabel('Y')
+    ax.set_zlabel('Z')
+
+    # Add title
+    ax.set_title('Initial and Final Attitudes')
+
+    plt.show()
+
+
+
+
+
+
+# # # # # # # # # # # # #
+# #    Format Rules   # #
+# # # # # # # # # # # # #
+
 # Always start with an initial attitude
 # All dictionaries will start with an index of 1, as the initial attitude is considered 0
 # When providing angles, the two options are commanded attitude or commanded maneuver:
@@ -159,33 +236,25 @@ def plot_attitudes(attitude_dictionary, maneuver_dictionary):
 #   Commanded maneuver means the euler angles represent the maneuver the vehicle is being commanded to execute, so the resulting attitude will be calculated
 #       Ex: Initial attitude: [15, 0, 0], commanded maneuver: [35, 0,0], calculated resulting attitude: [50, 0, 0]
 
+
+# # # # # # # # # #
+# #    Inputs   # #
+# # # # # # # # # #
+
 initial_attitude_angles = np.array([10., 0., 0.])
 desired_attitudes = {1: [30, 0, 0], 2: [100, 0, 0], 3: [60, 0, 0], 4: [42, 18, 77]}
 euler_sequence = 'ZYX'
 degrees = True
+
+# # # # # # # # # # # # # #
+# #    Function Calls   # #
+# # # # # # # # # # # # # #
 
 predicted_maneuvers, commanded_attitudes = combine_rotations(initial_attitude=initial_attitude_angles,
                                                              angle_dictionary=desired_attitudes,
                                                              euler_angle_type='commanded_attitude',
                                                              euler_sequence=euler_sequence, degrees=degrees)
 
-# print_maneuvers(initial_attitude=initial_attitude_angles,
-#                 maneuver_dictionary=predicted_maneuvers,
-#                 attitude_dictionary=commanded_attitudes)
-
 plot_attitudes(attitude_dictionary=commanded_attitudes, maneuver_dictionary=predicted_maneuvers)
 
-
-
-# desired_maneuvers = {1: [20, 0, 0], 2: [70, 0, 0], 3: [-40, 0, 0]}
-desired_maneuvers = predicted_maneuvers.copy()
-commanded_maneuvers, predicted_attitudes = combine_rotations(initial_attitude=initial_attitude_angles,
-                                                             angle_dictionary=desired_maneuvers,
-                                                             euler_angle_type='commanded_maneuver',
-                                                             euler_sequence=euler_sequence, degrees=degrees)
-
-# print_maneuvers(initial_attitude=initial_attitude_angles,
-#                 maneuver_dictionary=commanded_maneuvers,
-#                 attitude_dictionary=predicted_attitudes)
-
-plot_attitudes(attitude_dictionary=predicted_attitudes, maneuver_dictionary=commanded_maneuvers)
+plot_single_maneuver(initial_attitude=initial_attitude_angles, final_attitude=desired_attitudes[1], euler_sequence=euler_sequence, degrees=degrees)

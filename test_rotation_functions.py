@@ -1,7 +1,7 @@
 import unittest
 import numpy as np
 from scipy.spatial.transform import Rotation as R
-from main import compute_single_rotation, combine_rotations, plot_setup, plot_attitudes
+from attitude_control_utils import compute_single_rotation, combine_rotations, plot_setup, plot_attitudes
 
 
 class TestRotationFunctions(unittest.TestCase):
