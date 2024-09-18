@@ -95,28 +95,32 @@ def plot_setup(axis, reference_frame, reference_frame_label, origin=np.array([0,
     axis.zaxis.set_ticks(np.arange(-1, 1.5, 1))
     axis.view_init(azim=110, elev=200)
 
+    # Adjust position of maneuver and attitude text to be right of the plot and aligned
     if maneuver_angles is not None:
         maneuver_angles = np.round(maneuver_angles, decimals=2)
         maneuver_angle_string = f'Maneuver: \nY = {maneuver_angles[0]:.2f}\nP = {maneuver_angles[1]:.2f}\nR = {maneuver_angles[2]:.2f}'
-        axis.text2D(x=.25, y=-0.25, s=maneuver_angle_string, transform=axis.transAxes, fontsize=12)
+        axis.text2D(x=1.05, y=0.5, s=maneuver_angle_string, transform=axis.transAxes, fontsize=10, ha='left')
 
+    # Display attitude right below maneuver, left-aligned with maneuver
     attitude = R.from_matrix(reference_frame).as_euler(seq=sequence, degrees=True)
     attitude_angle_string = f'Attitude: \nY = {attitude[0]:.2f}\nP = {attitude[1]:.2f}\nR = {attitude[2]:.2f}'
-    axis.text2D(x=0.55, y=-0.25, s=attitude_angle_string, transform=axis.transAxes, fontsize=12)
+    axis.text2D(x=1.05, y=0.2, s=attitude_angle_string, transform=axis.transAxes, fontsize=10, ha='left')
 
 
 def plot_attitudes(attitude_dictionary, maneuver_dictionary):
-    fig = plt.figure(figsize=(9, 16))
+    # Dynamically adjust figure size based on number of subplots
     total_plots = len(attitude_dictionary)
     num_rows = int(np.ceil(total_plots ** 0.5))
     num_columns = int(np.ceil(total_plots / num_rows))
 
+    # Dynamic figure size: width and height scale with the number of rows/columns
+    fig = plt.figure(figsize=(num_columns * 4, num_rows * 4))
+
+    # Adjust title position
+    axis_title = 'Maneuver Plotter'
+    fig.suptitle(axis_title, y=0.95, fontsize=16)
+
     for index, attitude_angles in attitude_dictionary.items():
-
-        # Plot setup with calculated maneuver angles
-        axis_title = 'Maneuver Plotter'
-        fig.suptitle(axis_title, fontsize=32, fontweight='bold', y=0.95)
-
         # Create a subplot for each maneuver
         axis = fig.add_subplot(num_rows, num_columns, index + 1, projection='3d')
 
@@ -131,15 +135,18 @@ def plot_attitudes(attitude_dictionary, maneuver_dictionary):
             continue
         elif index == len(attitude_dictionary) - 1:
             axis_label = 'Final Attitude'
-            post_maneuver_attitude = R.from_euler(angles=attitude_dictionary[index], seq=euler_sequence, degrees=degrees)
+            post_maneuver_attitude = R.from_euler(angles=attitude_dictionary[index], seq=euler_sequence,
+                                                  degrees=degrees)
         else:
             axis_label = 'Maneuver ' + str(index)
-            post_maneuver_attitude = R.from_euler(angles=attitude_dictionary[index], seq=euler_sequence, degrees=degrees)
+            post_maneuver_attitude = R.from_euler(angles=attitude_dictionary[index], seq=euler_sequence,
+                                                  degrees=degrees)
 
         plot_setup(axis, post_maneuver_attitude.as_matrix(), axis_label, maneuver_angles=maneuver_dictionary[index])
 
-    plt.tight_layout()
-    plt.subplots_adjust(top=0.9, hspace=0.1, wspace=0.3)
+    # Adjust subplot layout and spacing
+    plt.tight_layout(pad=3.0)  # Add padding between subplots
+    plt.subplots_adjust(top=0.92, hspace=0.5, wspace=0.5)  # Adjust vertical and horizontal spacing
     plt.show()
 
 
