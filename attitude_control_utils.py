@@ -94,7 +94,7 @@ def plot_setup(axis, reference_frame, reference_frame_label, origin=np.array([0,
     axis.view_init(azim=110, elev=200)
 
     # Standardize text display vertically with bounds
-    y_positions = [0.75, 0.5, 0.25]  # Fixed y-positions within the plot bounds
+    y_positions = [0.65, 0.4, 0.15]  # Fixed y-positions within the plot bounds
     text_lines = []
 
     if attitude_in is not None:
@@ -124,7 +124,8 @@ def plot_attitudes(attitude_dictionary, maneuver_dictionary, euler_sequence='ZYX
         if index == 0:
             axis_label = 'Initial Attitude'
             attitude_in = attitude_dictionary[0]
-            plot_setup(axis, R.from_euler(angles=attitude_dictionary[0], seq=euler_sequence, degrees=degrees).as_matrix(),
+            plot_setup(axis,
+                       R.from_euler(angles=attitude_dictionary[0], seq=euler_sequence, degrees=degrees).as_matrix(),
                        axis_label, attitude_in=attitude_in)
         else:
             attitude_in = attitude_dictionary[index - 1]
@@ -138,7 +139,8 @@ def plot_attitudes(attitude_dictionary, maneuver_dictionary, euler_sequence='ZYX
     plt.show()
 
 
-def plot_single_maneuver(initial_attitude, final_attitude, euler_sequence='ZYX', degrees=True, origin=np.array([0, 0, 0])):
+def plot_single_maneuver(initial_attitude, final_attitude, euler_sequence='ZYX', degrees=True,
+                         origin=np.array([0, 0, 0])):
     fig = plt.figure()
     ax = fig.add_subplot(111, projection='3d')
 
@@ -195,8 +197,9 @@ def plot_single_maneuver(initial_attitude, final_attitude, euler_sequence='ZYX',
 
     plt.show()
 
-initial_att = [10, 0, 0]
-att_commands = {1: [20, 30, 0], 2: [55, 15, 15], 3: [60, 15, 15]}
+
+initial_att = [0, 0, 0]
+att_commands = {1: [20, 0, 0], 2: [20, 15, 0], 3: [0, 0, 0]}
 
 maneuver_out, att_out = combine_rotations(initial_att, att_commands, euler_angle_type='commanded_attitude')
 
