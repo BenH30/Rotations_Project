@@ -71,23 +71,29 @@ def plot_setup(axis, reference_frame, reference_frame_label, euler_sequence='ZYX
     # Convert XYZ sequence to RPY equivalent
     disp_sequence = euler_sequence_decoder(euler_sequence)
 
+    arrow_length = 0.75
+    label_length = 1
+
     # Plot each axis as a separate quiver
     axis.quiver(origin[0], origin[1], origin[2],
                 reference_frame[0, 0], reference_frame[1, 0], reference_frame[2, 0],
-                color=x_color, length=0.5)
-    axis.text(origin[0] + reference_frame[0, 0], origin[1] + reference_frame[1, 0], origin[2] + reference_frame[2, 0],
+                color=x_color, length=arrow_length)
+    axis.text((origin[0] + reference_frame[0, 0]) * label_length, (origin[1] + reference_frame[1, 0]) * label_length,
+              (origin[2] + reference_frame[2, 0]) * label_length,
               ' X', color=x_color)
 
     axis.quiver(origin[0], origin[1], origin[2],
                 reference_frame[0, 1], reference_frame[1, 1], reference_frame[2, 1],
-                color=y_color, length=0.5)
-    axis.text(origin[0] + reference_frame[0, 1], origin[1] + reference_frame[1, 1], origin[2] + reference_frame[2, 1],
+                color=y_color, length=arrow_length)
+    axis.text((origin[0] + reference_frame[0, 1]) * label_length, (origin[1] + reference_frame[1, 1]) * label_length,
+              (origin[2] + reference_frame[2, 1]) * label_length,
               ' Y', color=y_color)
 
     axis.quiver(origin[0], origin[1], origin[2],
                 reference_frame[0, 2], reference_frame[1, 2], reference_frame[2, 2],
-                color=z_color, length=0.5)
-    axis.text(origin[0] + reference_frame[0, 2], origin[1] + reference_frame[1, 2], origin[2] + reference_frame[2, 2],
+                color=z_color, length=arrow_length)
+    axis.text((origin[0] + reference_frame[0, 2]) * label_length, (origin[1] + reference_frame[1, 2]) * label_length,
+              (origin[2] + reference_frame[2, 2]) * label_length,
               ' Z', color=z_color)
 
     axis.set_xlabel('x')
@@ -168,29 +174,29 @@ def plot_single_maneuver(initial_attitude, final_attitude, euler_sequence='ZYX',
     final_rotation_matrix = R.from_euler(angles=final_attitude, seq=euler_sequence, degrees=degrees).as_matrix()
 
     length = 0.75
-    label_distance = 0.75
+    label_distance = 1
 
     x_color, y_color, z_color = 'r', 'g', 'b'
     ax.quiver(*origin, final_rotation_matrix[0, 0], final_rotation_matrix[1, 0], final_rotation_matrix[2, 0],
               color=x_color, linestyle='dashed', length=length)
-    ax.text(float(origin[0] + final_rotation_matrix[0, 0] * label_distance),
-            float(origin[1] + final_rotation_matrix[1, 0] * label_distance),
-            str(origin[2] + final_rotation_matrix[2, 0] * label_distance),
-            str="X'", color=x_color)
+    ax.text(x=float(origin[0] + final_rotation_matrix[0, 0] * label_distance),
+            y=float(origin[1] + final_rotation_matrix[1, 0] * label_distance),
+            z=float(origin[2] + final_rotation_matrix[2, 0] * label_distance),
+            s="X'", color=x_color)
 
     ax.quiver(*origin, final_rotation_matrix[0, 1], final_rotation_matrix[1, 1], final_rotation_matrix[2, 1],
               color=y_color, linestyle='dashed', length=length)
-    ax.text(float(origin[0] + final_rotation_matrix[0, 1] * label_distance),
-            float(origin[1] + final_rotation_matrix[1, 1] * label_distance),
-            str(origin[2] + final_rotation_matrix[2, 1] * label_distance),
-            str="Y'", color=y_color)
+    ax.text(x=float(origin[0] + final_rotation_matrix[0, 1] * label_distance),
+            y=float(origin[1] + final_rotation_matrix[1, 1] * label_distance),
+            z=float(origin[2] + final_rotation_matrix[2, 1] * label_distance),
+            s="Y'", color=y_color)
 
     ax.quiver(*origin, final_rotation_matrix[0, 2], final_rotation_matrix[1, 2], final_rotation_matrix[2, 2],
               color=z_color, linestyle='dashed', length=length)
-    ax.text(float(origin[0] + final_rotation_matrix[0, 2] * label_distance),
-            float(origin[1] + final_rotation_matrix[1, 2] * label_distance),
-            str(origin[2] + final_rotation_matrix[2, 2] * label_distance),
-            str="Z'", color=z_color)
+    ax.text(x=float(origin[0] + final_rotation_matrix[0, 2] * label_distance),
+            y=float(origin[1] + final_rotation_matrix[1, 2] * label_distance),
+            z=float(origin[2] + final_rotation_matrix[2, 2] * label_distance),
+            s="Z'", color=z_color)
 
     # Standardize text display vertically within plot bounds for single maneuver
     y_positions = [0.75, 0.5, 0.25]  # Fixed y-positions within the plot bounds
@@ -224,4 +230,7 @@ eul_seq = 'zyx'.upper()
 
 maneuver_out, att_out = combine_rotations(initial_att, att_commands, euler_angle_type='commanded_attitude')
 
-plot_attitudes(att_out, maneuver_out, euler_sequence=eul_seq, degrees=True)
+# plot_attitudes(att_out, maneuver_out, euler_sequence=eul_seq, degrees=True)
+
+fin_att = [20, 0, 0]
+plot_single_maneuver(initial_att, fin_att, eul_seq)
