@@ -56,11 +56,20 @@ def print_maneuvers(initial_attitude, maneuver_dictionary, attitude_dictionary):
         print(f'Ending Attitude:   {attitude_dictionary[maneuver_index]}')
 
 
-def plot_setup(axis, reference_frame, reference_frame_label, origin=np.array([0, 0, 0]), maneuver_angles=None,
-               sequence='ZYX', attitude_in=None, attitude_out=None):
+def euler_sequence_decoder(xyz_in):
+    sequence_code = {'X': 'R', 'Y': 'P', 'Z': 'Y'}
+    disp_sequence = ''.join(sequence_code[letter] for letter in xyz_in)
+    return disp_sequence
+
+
+def plot_setup(axis, reference_frame, reference_frame_label, euler_sequence='ZYX', origin=np.array([0, 0, 0]),
+               maneuver_angles=None, attitude_in=None, attitude_out=None):
     x_color = 'r'
     y_color = 'g'
     z_color = 'b'
+
+    # Convert XYZ sequence to RPY equivalent
+    disp_sequence = euler_sequence_decoder(euler_sequence)
 
     # Plot each axis as a separate quiver
     axis.quiver(origin[0], origin[1], origin[2],
@@ -94,18 +103,21 @@ def plot_setup(axis, reference_frame, reference_frame_label, origin=np.array([0,
     axis.view_init(azim=110, elev=200)
 
     # Standardize text display vertically with bounds
-    y_positions = [0.65, 0.4, 0.15]  # Fixed y-positions within the plot bounds
+    y_positions = [0.7, 0.35, 0.0]  # Fixed y-positions within the plot bounds
     text_lines = []
 
     if attitude_in is not None:
         attitude_in = np.round(attitude_in, 2)
-        text_lines.append(f'Attitude In:\nY = {attitude_in[0]}\nP = {attitude_in[1]}\nR = {attitude_in[2]}')
+        text_lines.append(
+            f'Attitude In:\n{disp_sequence[0]} = {attitude_in[0]}\n{disp_sequence[1]} = {attitude_in[1]}\n{disp_sequence[2]} = {attitude_in[2]}')
     if maneuver_angles is not None:
         maneuver_angles = np.round(maneuver_angles, 2)
-        text_lines.append(f'Maneuver:\nY = {maneuver_angles[0]}\nP = {maneuver_angles[1]}\nR = {maneuver_angles[2]}')
+        text_lines.append(
+            f'Maneuver:\n{disp_sequence[0]} = {maneuver_angles[0]}\n{disp_sequence[1]} = {maneuver_angles[1]}\n{disp_sequence[2]} = {maneuver_angles[2]}')
     if attitude_out is not None:
         attitude_out = np.round(attitude_out, 2)
-        text_lines.append(f'Attitude Out:\nY = {attitude_out[0]}\nP = {attitude_out[1]}\nR = {attitude_out[2]}')
+        text_lines.append(
+            f'Attitude Out:\n{disp_sequence[0]} = {attitude_out[0]}\n{disp_sequence[1]} = {attitude_out[1]}\n{disp_sequence[2]} = {attitude_out[2]}')
 
     for i, text in enumerate(text_lines):
         axis.text2D(x=1.05, y=y_positions[i], s=text, transform=axis.transAxes, fontsize=10, ha='left')
@@ -116,8 +128,11 @@ def plot_attitudes(attitude_dictionary, maneuver_dictionary, euler_sequence='ZYX
     num_rows = int(np.ceil(total_plots ** 0.5))
     num_columns = int(np.ceil(total_plots / num_rows))
 
-    fig = plt.figure(figsize=(num_columns * 4, num_rows * 4))
-    fig.suptitle('Maneuver Plotter', y=0.95, fontsize=16)
+    # Convert XYZ sequence to RPY equivalent
+    disp_sequence = euler_sequence_decoder(euler_sequence)
+
+    fig = plt.figure(figsize=(num_columns * 4, num_rows * 5))
+    fig.suptitle(f'Maneuver Plotter\nEuler Sequence:\n{disp_sequence}', y=0.95, fontsize=16)
 
     for index, attitude_angles in attitude_dictionary.items():
         axis = fig.add_subplot(num_rows, num_columns, index + 1, projection='3d')
@@ -126,16 +141,16 @@ def plot_attitudes(attitude_dictionary, maneuver_dictionary, euler_sequence='ZYX
             attitude_in = attitude_dictionary[0]
             plot_setup(axis,
                        R.from_euler(angles=attitude_dictionary[0], seq=euler_sequence, degrees=degrees).as_matrix(),
-                       axis_label, attitude_in=attitude_in)
+                       axis_label, attitude_in=attitude_in, euler_sequence=euler_sequence)
         else:
             attitude_in = attitude_dictionary[index - 1]
             attitude_out = attitude_dictionary[index]
             plot_setup(axis, R.from_euler(angles=attitude_out, seq=euler_sequence, degrees=degrees).as_matrix(),
                        f'Maneuver {index}', maneuver_angles=maneuver_dictionary[index],
-                       attitude_in=attitude_in, attitude_out=attitude_out)
+                       attitude_in=attitude_in, attitude_out=attitude_out, euler_sequence=euler_sequence)
 
     plt.tight_layout(pad=3.0)
-    plt.subplots_adjust(top=0.92, hspace=0.5, wspace=0.5)
+    plt.subplots_adjust(top=0.9, hspace=0, wspace=0.5)
     plt.show()
 
 
@@ -144,8 +159,11 @@ def plot_single_maneuver(initial_attitude, final_attitude, euler_sequence='ZYX',
     fig = plt.figure()
     ax = fig.add_subplot(111, projection='3d')
 
+    # Convert XYZ sequence to RPY equivalent
+    disp_sequence = euler_sequence_decoder(euler_sequence)
+
     initial_rotation = R.from_euler(angles=initial_attitude, seq=euler_sequence, degrees=degrees)
-    plot_setup(ax, initial_rotation.as_matrix(), "Initial Attitude", origin=origin)
+    plot_setup(ax, initial_rotation.as_matrix(), "Initial Attitude", origin=origin, euler_sequence=euler_sequence)
 
     final_rotation_matrix = R.from_euler(angles=final_attitude, seq=euler_sequence, degrees=degrees).as_matrix()
 
@@ -155,24 +173,24 @@ def plot_single_maneuver(initial_attitude, final_attitude, euler_sequence='ZYX',
     x_color, y_color, z_color = 'r', 'g', 'b'
     ax.quiver(*origin, final_rotation_matrix[0, 0], final_rotation_matrix[1, 0], final_rotation_matrix[2, 0],
               color=x_color, linestyle='dashed', length=length)
-    ax.text(origin[0] + final_rotation_matrix[0, 0] * label_distance,
-            origin[1] + final_rotation_matrix[1, 0] * label_distance,
-            origin[2] + final_rotation_matrix[2, 0] * label_distance,
-            "X'", color=x_color)
+    ax.text(float(origin[0] + final_rotation_matrix[0, 0] * label_distance),
+            float(origin[1] + final_rotation_matrix[1, 0] * label_distance),
+            str(origin[2] + final_rotation_matrix[2, 0] * label_distance),
+            str="X'", color=x_color)
 
     ax.quiver(*origin, final_rotation_matrix[0, 1], final_rotation_matrix[1, 1], final_rotation_matrix[2, 1],
               color=y_color, linestyle='dashed', length=length)
-    ax.text(origin[0] + final_rotation_matrix[0, 1] * label_distance,
-            origin[1] + final_rotation_matrix[1, 1] * label_distance,
-            origin[2] + final_rotation_matrix[2, 1] * label_distance,
-            "Y'", color=y_color)
+    ax.text(float(origin[0] + final_rotation_matrix[0, 1] * label_distance),
+            float(origin[1] + final_rotation_matrix[1, 1] * label_distance),
+            str(origin[2] + final_rotation_matrix[2, 1] * label_distance),
+            str="Y'", color=y_color)
 
     ax.quiver(*origin, final_rotation_matrix[0, 2], final_rotation_matrix[1, 2], final_rotation_matrix[2, 2],
               color=z_color, linestyle='dashed', length=length)
-    ax.text(origin[0] + final_rotation_matrix[0, 2] * label_distance,
-            origin[1] + final_rotation_matrix[1, 2] * label_distance,
-            origin[2] + final_rotation_matrix[2, 2] * label_distance,
-            "Z'", color=z_color)
+    ax.text(float(origin[0] + final_rotation_matrix[0, 2] * label_distance),
+            float(origin[1] + final_rotation_matrix[1, 2] * label_distance),
+            str(origin[2] + final_rotation_matrix[2, 2] * label_distance),
+            str="Z'", color=z_color)
 
     # Standardize text display vertically within plot bounds for single maneuver
     y_positions = [0.75, 0.5, 0.25]  # Fixed y-positions within the plot bounds
@@ -181,8 +199,10 @@ def plot_single_maneuver(initial_attitude, final_attitude, euler_sequence='ZYX',
     # Attitude In and Attitude Out text display
     attitude_in = np.round(initial_attitude, 2)
     attitude_out = np.round(final_attitude, 2)
-    text_lines.append(f'Attitude In:\nY = {attitude_in[0]}\nP = {attitude_in[1]}\nR = {attitude_in[2]}')
-    text_lines.append(f'Attitude Out:\nY = {attitude_out[0]}\nP = {attitude_out[1]}\nR = {attitude_out[2]}')
+    text_lines.append(
+        f'Attitude In:\n{disp_sequence[0]} = {attitude_in[0]}\n{disp_sequence[1]} = {attitude_in[1]}\n{disp_sequence[2]} = {attitude_in[2]}')
+    text_lines.append(
+        f'Attitude Out:\n{disp_sequence[0]} = {attitude_out[0]}\n{disp_sequence[1]} = {attitude_out[1]}\n{disp_sequence[2]} = {attitude_out[2]}')
 
     for i, text in enumerate(text_lines):
         ax.text2D(x=1.05, y=y_positions[i], s=text, transform=ax.transAxes, fontsize=10, ha='left')
@@ -200,7 +220,8 @@ def plot_single_maneuver(initial_attitude, final_attitude, euler_sequence='ZYX',
 
 initial_att = [0, 0, 0]
 att_commands = {1: [20, 0, 0], 2: [20, 15, 0], 3: [0, 0, 0]}
+eul_seq = 'zyx'.upper()
 
 maneuver_out, att_out = combine_rotations(initial_att, att_commands, euler_angle_type='commanded_attitude')
 
-plot_attitudes(att_out, maneuver_out, euler_sequence='ZYX', degrees=True)
+plot_attitudes(att_out, maneuver_out, euler_sequence=eul_seq, degrees=True)
